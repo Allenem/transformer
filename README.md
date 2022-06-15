@@ -39,7 +39,7 @@ $$PE_{(pos, 2i+1)} = \cos (\frac{pos}{1000^{\frac{2i}{d_{model}}}})$$
 $$
 \begin{gather*}
     MHA(X) = Concatenate(Attention_i(X)) * W_C\\
-    i = [1, numheads]\\
+    i \in [1, numheads]\\
 	Attention(X) = SelfAttentionOrContextAttention(Q, K, V) = softmax(\frac{QK^T}{\sqrt{d_k}})V\\
 	Q = Linear(X) = X * W_Q\\
 	K = Linear(X) = X * W_K\\
@@ -72,105 +72,105 @@ $$clones(X, N) = [X repeat N times]$$
 
 <img src='https://pic1.zhimg.com/80/v2-4b53b731a961ee467928619d14a5fd44_720w.jpg' text-align='center'/>
 
-- 10.1.Encoder
+### 10.1.Encoder
 
-    - 1).InputEmbedding + PositionalEncoding
+- 1).InputEmbedding + PositionalEncoding
 
-    $$X_{emb} = InputEmbedding(X) + PositionalEncoding(pos)$$
+$$X_{emb} = InputEmbedding(X) + PositionalEncoding(pos)$$
 
-    - 2).MultiHeadSelfAttention
-    
-    $$
-    \begin{gather*}
-        X_{attn} = MHA(X_{emb}) = Concatenate(Attention_i(X_{emb})) * W_C\\
-        i = [1, numheads]\\
-        Attention(X_{emb}) = SelfAttention(Q, K, V) = softmax(\frac{QK^T}{\sqrt{d_k}})V\\
-        Q = Linear(X_{emb}) = X_{emb} * W_Q\\
-        K = Linear(X_{emb}) = X_{emb} * W_K\\
-        V = Linear(X_{emb}) = X_{emb} * W_V\\
-        d_k = d_{model} // numheads\\
-        W_C, W_Q, W_K, W_V = clones(nn.Linear(d_{model}, d_{model}), 4)
-    \end{gather*}
-    $$
+- 2).MultiHeadSelfAttention
 
-    - 3).SublayerConnection + Norm
+$$
+\begin{gather*}
+    X_{attn} = MHA(X_{emb}) = Concatenate(Attention_i(X_{emb})) * W_C\\
+    i \in [1, numheads]\\
+    Attention(X_{emb}) = SelfAttention(Q, K, V) = softmax(\frac{QK^T}{\sqrt{d_k}})V\\
+    Q = Linear(X_{emb}) = X_{emb} * W_Q\\
+    K = Linear(X_{emb}) = X_{emb} * W_K\\
+    V = Linear(X_{emb}) = X_{emb} * W_V\\
+    d_k = d_{model} // numheads\\
+    W_C, W_Q, W_K, W_V = clones(nn.Linear(d_{model}, d_{model}), 4)
+\end{gather*}
+$$
 
-    $$X_{attn} = LayerNorm(X_{attn})$$
-    $$X_{attn} = X + X_{attn}$$
+- 3).SublayerConnection + Norm
 
-    - 4).PositionwiseFeedForward
+$$X_{attn} = LayerNorm(X_{attn})$$
+$$X_{attn} = X + X_{attn}$$
 
-    $$X_{hidden} = Linear(Activate(Linear(X_{attn})))$$
+- 4).PositionwiseFeedForward
 
-    - 5).Repeat 3)
+$$X_{hidden} = Linear(Activate(Linear(X_{attn})))$$
 
-    $$X_{hidden} = LayerNorm(X_{hidden})$$
-    $$X_{hidden} = X_{attn} + X_{hidden}$$
+- 5).Repeat 3)
 
-    - 6).Repeat 2) ~ 5) * N 
+$$X_{hidden} = LayerNorm(X_{hidden})$$
+$$X_{hidden} = X_{attn} + X_{hidden}$$
 
-        Let the output of previous 5) be the input of next 2), repeating N times.
+- 6).Repeat 2) ~ 5) * N 
 
-- 10.2.Decoder
+    Let the output of previous 5) be the input of next 2), repeating N times.
 
-    - 1).InputEmbedding + PositionalEncoding
+### 10.2.Decoder
 
-    $$Y_{emb} = InputEmbedding(Y) + PositionalEncoding(pos)$$
+- 1).InputEmbedding + PositionalEncoding
 
-    - 2).MultiHeadSelfAttention
+$$Y_{emb} = InputEmbedding(Y) + PositionalEncoding(pos)$$
 
-    $$
-    \begin{gather*}
-        Y_{attn1} = MaskedMHA(Y_{emb}) = Concatenate(Attention_i(Y_{emb})) * W_C\\
-        i = [1, numheads]\\
-        Attention(Y_{emb}) = SelfAttention(Q, K, V) = softmax(\frac{QK^T}{\sqrt{d_k}})V\\
-        Q = Linear(Y_{emb}) = Y_{emb} * W_Q\\
-        K = Linear(Y_{emb}) = Y_{emb} * W_K\\
-        V = Linear(Y_{emb}) = Y_{emb} * W_V\\
-        d_k = d_{model} // numheads\\
-        W_C, W_Q, W_K, W_V = clones(nn.Linear(d_{model}, d_{model}), 4)
-    \end{gather*}
-    $$
+- 2).MultiHeadSelfAttention
 
-    - 3).SublayerConnection + Norm
+$$
+\begin{gather*}
+    Y_{attn1} = MaskedMHA(Y_{emb}) = Concatenate(Attention_i(Y_{emb})) * W_C\\
+    i \in [1, numheads]\\
+    Attention(Y_{emb}) = SelfAttention(Q, K, V) = softmax(\frac{QK^T}{\sqrt{d_k}})V\\
+    Q = Linear(Y_{emb}) = Y_{emb} * W_Q\\
+    K = Linear(Y_{emb}) = Y_{emb} * W_K\\
+    V = Linear(Y_{emb}) = Y_{emb} * W_V\\
+    d_k = d_{model} // numheads\\
+    W_C, W_Q, W_K, W_V = clones(nn.Linear(d_{model}, d_{model}), 4)
+\end{gather*}
+$$
 
-    $$Y_{attn1} = LayerNorm(Y_{attn1})$$
-    $$Y_{attn1} = Y + Y_{attn1}$$
+- 3).SublayerConnection + Norm
 
-    - 4).MultiHeadContextAttention
+$$Y_{attn1} = LayerNorm(Y_{attn1})$$
+$$Y_{attn1} = Y + Y_{attn1}$$
 
-    $$
-    \begin{gather*}
-        Y_{attn2} = MHA(Y_{attn1}, M, M) = Concatenate(Attention_i(Y_{attn1}, M, M)) * W_C\\
-        i = [1, numheads], M = X_{hidden}\\
-        Attention(Y_{attn1}, M, M) = ContextAttention(Q, K, V) = softmax(\frac{QK^T}{\sqrt{d_k}})V\\
-        Q = Linear(Y_{attn1}) = Y_{attn1} * W_Q\\
-        K = Linear(M) = M * W_K = X_{hidden} * W_K\\
-        V = Linear(M) = M * W_V = X_{hidden} * W_V\\
-        d_k = d_{model} // numheads\\
-        W_C, W_Q, W_K, W_V = clones(nn.Linear(d_{model}, d_{model}), 4)
-    \end{gather*}
-    $$
+- 4).MultiHeadContextAttention
 
-    - 5).Repeat 3)
+$$
+\begin{gather*}
+    Y_{attn2} = MHA(Y_{attn1}, M, M) = Concatenate(Attention_i(Y_{attn1}, M, M)) * W_C\\
+    i \in [1, numheads], M = X_{hidden}\\
+    Attention(Y_{attn1}, M, M) = ContextAttention(Q, K, V) = softmax(\frac{QK^T}{\sqrt{d_k}})V\\
+    Q = Linear(Y_{attn1}) = Y_{attn1} * W_Q\\
+    K = Linear(M) = M * W_K = X_{hidden} * W_K\\
+    V = Linear(M) = M * W_V = X_{hidden} * W_V\\
+    d_k = d_{model} // numheads\\
+    W_C, W_Q, W_K, W_V = clones(nn.Linear(d_{model}, d_{model}), 4)
+\end{gather*}
+$$
 
-    $$Y_{attn2} = LayerNorm(Y_{attn2})$$
-    $$Y_{attn2} = Y_{attn1} + Y_{attn2}$$
+- 5).Repeat 3)
 
-    - 6).PositionwiseFeedForward
+$$Y_{attn2} = LayerNorm(Y_{attn2})$$
+$$Y_{attn2} = Y_{attn1} + Y_{attn2}$$
 
-    $$Y_{hidden} = Linear(Activate(Linear(Y_{attn2})))$$
+- 6).PositionwiseFeedForward
 
-    - 7).Repeat 3)
+$$Y_{hidden} = Linear(Activate(Linear(Y_{attn2})))$$
 
-    $$Y_{hidden} = LayerNorm(Y_{hidden})$$
-    $$Y_{hidden} = Y_{attn2} + Y_{hidden}$$
+- 7).Repeat 3)
 
-    - 8).Repeat 2) ~ 7) * N 
+$$Y_{hidden} = LayerNorm(Y_{hidden})$$
+$$Y_{hidden} = Y_{attn2} + Y_{hidden}$$
 
-        Let the output of previous 7) be the input of next 2), repeating N times.
+- 8).Repeat 2) ~ 7) * N 
 
-- 10.3.linear + log_softmax
+    Let the output of previous 7) be the input of next 2), repeating N times.
+
+### 10.3.linear + log_softmax
 
 ## 11.Make a real Transformer model
 
